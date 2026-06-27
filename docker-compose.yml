@@ -1,0 +1,10 @@
+services:
+  monomicro-server:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      APP_ADDR: ":8080"
+      CACHE_TTL_SECONDS: "300"
+      MONOBANK_API_URL: "https://api.monobank.ua/bank/currency"
+    restart: unless-stopped
