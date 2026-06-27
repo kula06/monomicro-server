@@ -1,0 +1,36 @@
+# Binaries
+/monomicro-server
+/server
+*.exe
+*.out
+*.test
+
+# Go build and test output
+/bin/
+/build/
+/dist/
+/coverage/
+coverage.out
+*.coverprofile
+
+# Temporary files
+/tmp/
+/temp/
+*.tmp
+*.bak
+*.swp
+*~
+
+# Logs
+*.log
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Environment files
+.env
+.env.*
+!.env.example
