@@ -2,6 +2,7 @@ package rates
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -58,6 +59,30 @@ func TestParseRatesTextRequiresAllTargetCurrencies(t *testing.T) {
 	})
 	if err == nil {
 		t.Fatal("expected error for missing currencies")
+	}
+}
+
+func TestServiceWrapsProviderError(t *testing.T) {
+	provider := &fakeProvider{err: errors.New("network down")}
+	service := NewService(provider, 5*time.Minute)
+
+	_, err := service.RatesText(context.Background())
+	if !errors.Is(err, ErrUpstreamUnavailable) {
+		t.Fatalf("expected ErrUpstreamUnavailable, got %v", err)
+	}
+}
+
+func TestServiceWrapsInvalidRates(t *testing.T) {
+	provider := &fakeProvider{
+		rates: []monobank.CurrencyRate{
+			{CurrencyCodeA: 840, CurrencyCodeB: 980, RateBuy: 40, RateSell: 41},
+		},
+	}
+	service := NewService(provider, 5*time.Minute)
+
+	_, err := service.RatesText(context.Background())
+	if !errors.Is(err, ErrInvalidRates) {
+		t.Fatalf("expected ErrInvalidRates, got %v", err)
 	}
 }
 

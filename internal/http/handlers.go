@@ -1,6 +1,8 @@
 package http
 
 import (
+	"context"
+	"errors"
 	"log/slog"
 	nethttp "net/http"
 
@@ -48,7 +50,7 @@ func (h *Handlers) ratesText(w nethttp.ResponseWriter, r *nethttp.Request) {
 	text, err := h.ratesService.RatesText(r.Context())
 	if err != nil {
 		h.logger.Error("rates request failed", "error", err)
-		nethttp.Error(w, "rates unavailable", nethttp.StatusBadGateway)
+		writeRatesError(w, err)
 		return
 	}
 
@@ -62,4 +64,17 @@ func (h *Handlers) logRequests(next nethttp.Handler) nethttp.Handler {
 		next.ServeHTTP(w, r)
 		h.logger.Info("http request", "method", r.Method, "path", r.URL.Path, "remote_addr", r.RemoteAddr)
 	})
+}
+
+func writeRatesError(w nethttp.ResponseWriter, err error) {
+	switch {
+	case errors.Is(err, context.DeadlineExceeded):
+		nethttp.Error(w, "upstream timeout", nethttp.StatusGatewayTimeout)
+	case errors.Is(err, rates.ErrUpstreamUnavailable):
+		nethttp.Error(w, "upstream unavailable", nethttp.StatusBadGateway)
+	case errors.Is(err, rates.ErrInvalidRates):
+		nethttp.Error(w, "invalid upstream rates", nethttp.StatusBadGateway)
+	default:
+		nethttp.Error(w, "internal server error", nethttp.StatusInternalServerError)
+	}
 }

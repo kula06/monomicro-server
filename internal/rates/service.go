@@ -13,6 +13,11 @@ import (
 
 const uahCurrencyCode = 980
 
+var (
+	ErrUpstreamUnavailable = errors.New("upstream unavailable")
+	ErrInvalidRates        = errors.New("invalid rates data")
+)
+
 var targetCurrencies = []targetCurrency{
 	{Code: 840, Symbol: "USD"},
 	{Code: 978, Symbol: "EUR"},
@@ -57,12 +62,12 @@ func (s *Service) RatesText(ctx context.Context) (string, error) {
 
 	sourceRates, err := s.provider.FetchCurrencyRates(ctx)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%w: %w", ErrUpstreamUnavailable, err)
 	}
 
 	text, err := ParseRatesText(sourceRates)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%w: %v", ErrInvalidRates, err)
 	}
 
 	s.cached = text

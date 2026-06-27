@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+const maxResponseBytes = 1 << 20
+
 type CurrencyRate struct {
 	CurrencyCodeA int     `json:"currencyCodeA"`
 	CurrencyCodeB int     `json:"currencyCodeB"`
@@ -50,7 +52,8 @@ func (c *Client) FetchCurrencyRates(ctx context.Context) ([]CurrencyRate, error)
 	}
 
 	var rates []CurrencyRate
-	if err := json.NewDecoder(resp.Body).Decode(&rates); err != nil {
+	decoder := json.NewDecoder(io.LimitReader(resp.Body, maxResponseBytes))
+	if err := decoder.Decode(&rates); err != nil {
 		return nil, fmt.Errorf("decode monobank rates: %w", err)
 	}
 

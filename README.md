@@ -27,6 +27,8 @@ Environment variables:
 
 ## Run Locally
 
+Requires Go 1.23 or newer.
+
 ```sh
 go run ./cmd/server
 ```
